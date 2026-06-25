@@ -1,0 +1,87 @@
+<table class="grid">
+  <colgroup>
+    <col class="col-check">
+    <col class="col-name">
+    <col class="col-code">
+    <col class="col-requester">
+    <col class="col-date">
+    <col class="col-status">
+    <col class="col-actions">
+  </colgroup>
+  <thead>
+    <tr>
+      <th class="grid__check">
+        <label class="checkbox" [class.checkbox--disabled]="pendingDocs().length === 0">
+          <input type="checkbox" [checked]="allPendingSelected()" [disabled]="pendingDocs().length === 0"
+            (change)="toggleAll.emit()" />
+          <span class="checkbox__box"></span>
+        </label>
+      </th>
+      <th class="th-sort" [class.th-sort--active]="sort() === 'name'" (click)="sortBy('name')">
+        รายการ<span class="sort-arrow">{{ sort() === 'name' ? (order() === 'asc' ? ' ↑' : ' ↓') : '' }}</span>
+      </th>
+      <th class="th-sort" [class.th-sort--active]="sort() === 'code'" (click)="sortBy('code')">
+        รหัส<span class="sort-arrow">{{ sort() === 'code' ? (order() === 'asc' ? ' ↑' : ' ↓') : '' }}</span>
+      </th>
+      <th class="th-sort grid__hide-sm" [class.th-sort--active]="sort() === 'requester'" (click)="sortBy('requester')">
+        ผู้ยื่น<span class="sort-arrow">{{ sort() === 'requester' ? (order() === 'asc' ? ' ↑' : ' ↓') : '' }}</span>
+      </th>
+      <th class="th-sort grid__hide-sm" [class.th-sort--active]="sort() === 'submittedAt'" (click)="sortBy('submittedAt')">
+        วันที่ยื่น<span class="sort-arrow">{{ sort() === 'submittedAt' ? (order() === 'asc' ? ' ↑' : ' ↓') : '' }}</span>
+      </th>
+      <th class="th-sort" [class.th-sort--active]="sort() === 'status'" (click)="sortBy('status')">
+        สถานะ<span class="sort-arrow">{{ sort() === 'status' ? (order() === 'asc' ? ' ↑' : ' ↓') : '' }}</span>
+      </th>
+      <th class="grid__actions-head">ดำเนินการ</th>
+    </tr>
+  </thead>
+  <tbody>
+    @if (loading() && documents().length === 0) {
+      @for (i of [0,1,2,3,4]; track i) {
+        <tr class="grid__row grid__row--skeleton">
+          <td></td><td><span class="skeleton"></span></td><td><span class="skeleton skeleton--sm"></span></td>
+          <td class="grid__hide-sm"><span class="skeleton"></span></td>
+          <td class="grid__hide-sm"><span class="skeleton skeleton--sm"></span></td>
+          <td><span class="skeleton skeleton--pill"></span></td><td></td>
+        </tr>
+      }
+    }
+    @for (doc of documents(); track doc.id; let i = $index) {
+      <tr class="grid__row" [class.is-selected]="isSelected(doc.id)" [class.is-locked]="!isSelectable(doc)"
+        [style.--row]="i" (click)="onToggleRow(doc)">
+        <td class="grid__check">
+          @if (isSelectable(doc)) {
+            <label class="checkbox" (click)="$event.stopPropagation()">
+              <input type="checkbox" [checked]="isSelected(doc.id)" (change)="onToggleRow(doc)" />
+              <span class="checkbox__box"></span>
+            </label>
+          }
+        </td>
+        <td class="grid__name">{{ doc.name }}</td>
+        <td class="grid__code">{{ doc.code }}</td>
+        <td class="grid__hide-sm">{{ doc.requester }}</td>
+        <td class="grid__hide-sm grid__date">{{ formatDate(doc.submittedAt) }}</td>
+        <td><app-status-pill [status]="doc.status" /></td>
+        <td class="grid__actions-cell">
+          @if (isSelectable(doc)) {
+            <div class="row-actions">
+              <button class="row-btn row-btn--approve" title="อนุมัติ"
+                (click)="onQuickAction(doc, 'APPROVE', $event)">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="2,9 6,13 14,4"></polyline>
+                </svg>
+              </button>
+              <button class="row-btn row-btn--reject" title="ไม่อนุมัติ"
+                (click)="onQuickAction(doc, 'REJECT', $event)">
+                <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                  <line x1="3" y1="3" x2="13" y2="13"></line>
+                  <line x1="13" y1="3" x2="3" y2="13"></line>
+                </svg>
+              </button>
+            </div>
+          }
+        </td>
+      </tr>
+    }
+  </tbody>
+</table>

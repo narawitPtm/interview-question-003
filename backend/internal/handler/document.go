@@ -37,7 +37,7 @@ func (h *DocumentHandler) List(w http.ResponseWriter, r *http.Request) {
 		PageSize: pageSize,
 	})
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, "internal server error", http.StatusInternalServerError)
 		return
 	}
 	writeJSON(w, result)
@@ -67,7 +67,7 @@ func (h *DocumentHandler) decide(w http.ResponseWriter, r *http.Request, status 
 		return
 	}
 	if err := h.repo.Decide(r.Context(), req.IDs, status, req.Reason); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, "internal server error", http.StatusInternalServerError)
 		return
 	}
 	w.WriteHeader(http.StatusNoContent)

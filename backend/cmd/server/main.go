@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"example.com/it03-approval/internal/handler"
 	"example.com/it03-approval/internal/repository"
@@ -44,8 +45,16 @@ func main() {
 	if port == "" {
 		port = "8080"
 	}
+
+	srv := &http.Server{
+		Addr:         ":" + port,
+		Handler:      corsMiddleware(mux),
+		ReadTimeout:  10 * time.Second,
+		WriteTimeout: 30 * time.Second,
+		IdleTimeout:  60 * time.Second,
+	}
 	log.Printf("server listening on :%s", port)
-	log.Fatal(http.ListenAndServe(":"+port, corsMiddleware(mux)))
+	log.Fatal(srv.ListenAndServe())
 }
 
 func migrate(pool *pgxpool.Pool) error {

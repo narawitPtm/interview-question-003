@@ -1,4 +1,5 @@
 export type ApprovalStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
+export type ModalKind = 'APPROVE' | 'REJECT';
 
 export interface ApprovalDocument {
   id: number;

@@ -1,0 +1,15 @@
+<div class="toolbar">
+  <div class="filter-tabs">
+    <button class="filter-tab" [class.filter-tab--active]="statusFilter() === ''" (click)="setStatusFilter('')">ทั้งหมด</button>
+    <button class="filter-tab filter-tab--pending" [class.filter-tab--active]="statusFilter() === 'PENDING'" (click)="setStatusFilter('PENDING')">รออนุมัติ</button>
+    <button class="filter-tab filter-tab--approved" [class.filter-tab--active]="statusFilter() === 'APPROVED'" (click)="setStatusFilter('APPROVED')">อนุมัติ</button>
+    <button class="filter-tab filter-tab--rejected" [class.filter-tab--active]="statusFilter() === 'REJECTED'" (click)="setStatusFilter('REJECTED')">ไม่อนุมัติ</button>
+  </div>
+  <div class="toolbar__right">
+    @if (selectedCount() > 0) {
+      <span class="toolbar__count">เลือก {{ selectedCount() }}</span>
+    }
+    <button class="btn btn--approve" [disabled]="selectedCount() === 0" (click)="openModal.emit('APPROVE')">อนุมัติ</button>
+    <button class="btn btn--reject" [disabled]="selectedCount() === 0" (click)="openModal.emit('REJECT')">ไม่อนุมัติ</button>
+  </div>
+</div>
