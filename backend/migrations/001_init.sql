@@ -1,7 +1,10 @@
+-- +goose Up
+-- +goose StatementBegin
 DO $$ BEGIN
   CREATE TYPE approval_status AS ENUM ('PENDING', 'APPROVED', 'REJECTED');
 EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
+-- +goose StatementEnd
 
 CREATE TABLE IF NOT EXISTS documents (
   id           SERIAL          PRIMARY KEY,
@@ -30,3 +33,7 @@ INSERT INTO documents (code, name, requester, submitted_at, status, reason, deci
   ('DOC-009', 'ขอจัดซื้ออุปกรณ์เครือข่าย',        'พิชัย ตั้งใจ',   '2025-01-22', 'PENDING',  NULL,                    NULL),
   ('DOC-010', 'ขออนุมัติจัดกิจกรรมสัมมนา',        'อรอุมา ร่าเริง', '2025-01-23', 'PENDING',  NULL,                    NULL)
 ON CONFLICT (code) DO NOTHING;
+
+-- +goose Down
+DROP TABLE IF EXISTS documents;
+DROP TYPE IF EXISTS approval_status;

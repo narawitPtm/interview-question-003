@@ -10,6 +10,8 @@ import (
 	"example.com/it03-approval/internal/repository"
 	"example.com/it03-approval/migrations"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/jackc/pgx/v5/stdlib"
+	"github.com/pressly/goose/v3"
 )
 
 func main() {
@@ -20,17 +22,17 @@ func main() {
 
 	ctx := context.Background()
 
-	db, err := pgxpool.New(ctx, dsn)
+	pool, err := pgxpool.New(ctx, dsn)
 	if err != nil {
 		log.Fatalf("db connect: %v", err)
 	}
-	defer db.Close()
+	defer pool.Close()
 
-	if err := runMigration(ctx, db); err != nil {
+	if err := migrate(pool); err != nil {
 		log.Fatalf("migrate: %v", err)
 	}
 
-	repo := repository.New(db)
+	repo := repository.New(pool)
 	h := handler.New(repo)
 
 	mux := http.NewServeMux()
@@ -46,13 +48,15 @@ func main() {
 	log.Fatal(http.ListenAndServe(":"+port, corsMiddleware(mux)))
 }
 
-func runMigration(ctx context.Context, db *pgxpool.Pool) error {
-	sql, err := migrations.FS.ReadFile("001_init.sql")
-	if err != nil {
+func migrate(pool *pgxpool.Pool) error {
+	db := stdlib.OpenDBFromPool(pool)
+	defer db.Close()
+
+	goose.SetBaseFS(migrations.FS)
+	if err := goose.SetDialect("postgres"); err != nil {
 		return err
 	}
-	_, err = db.Exec(ctx, string(sql))
-	return err
+	return goose.Up(db, ".")
 }
 
 func corsMiddleware(next http.Handler) http.Handler {
