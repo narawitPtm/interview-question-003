@@ -7,7 +7,7 @@ END $$;
 -- +goose StatementEnd
 
 CREATE TABLE IF NOT EXISTS documents (
-  id           SERIAL          PRIMARY KEY,
+  id           BIGSERIAL       PRIMARY KEY,
   code         VARCHAR(20)     NOT NULL UNIQUE,
   name         VARCHAR(255)    NOT NULL,
   requester    VARCHAR(100)    NOT NULL,

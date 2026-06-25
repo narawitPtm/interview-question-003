@@ -9,7 +9,7 @@ const (
 )
 
 type Document struct {
-	ID          int     `json:"id"`
+	ID          int64   `json:"id"`
 	Code        string  `json:"code"`
 	Name        string  `json:"name"`
 	Requester   string  `json:"requester"`
@@ -17,4 +17,11 @@ type Document struct {
 	Status      Status  `json:"status"`
 	Reason      *string `json:"reason,omitempty"`
 	DecidedAt   *string `json:"decidedAt,omitempty"`
+}
+
+type PagedResult struct {
+	Data     []Document `json:"data"`
+	Total    int        `json:"total"`
+	Page     int        `json:"page"`
+	PageSize int        `json:"pageSize"`
 }

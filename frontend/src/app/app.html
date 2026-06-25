@@ -17,20 +17,18 @@
     </header>
 
     <div class="toolbar">
-      <div class="toolbar__selection">
-        @if (selectedCount() > 0) {
-          <span class="toolbar__count">เลือก {{ selectedCount() }} รายการ</span>
-        } @else {
-          <span class="toolbar__hint">เลือกรายการเพื่อดำเนินการแบบกลุ่ม หรือกดปุ่มรายการ</span>
-        }
+      <div class="filter-tabs">
+        <button class="filter-tab" [class.filter-tab--active]="statusFilter() === ''" (click)="setStatusFilter('')">ทั้งหมด</button>
+        <button class="filter-tab filter-tab--pending" [class.filter-tab--active]="statusFilter() === 'PENDING'" (click)="setStatusFilter('PENDING')">รออนุมัติ</button>
+        <button class="filter-tab filter-tab--approved" [class.filter-tab--active]="statusFilter() === 'APPROVED'" (click)="setStatusFilter('APPROVED')">อนุมัติ</button>
+        <button class="filter-tab filter-tab--rejected" [class.filter-tab--active]="statusFilter() === 'REJECTED'" (click)="setStatusFilter('REJECTED')">ไม่อนุมัติ</button>
       </div>
-      <div class="toolbar__actions">
-        <button class="btn btn--approve" [disabled]="selectedCount() === 0" (click)="openModal('APPROVE')">
-          อนุมัติ
-        </button>
-        <button class="btn btn--reject" [disabled]="selectedCount() === 0" (click)="openModal('REJECT')">
-          ไม่อนุมัติ
-        </button>
+      <div class="toolbar__right">
+        @if (selectedCount() > 0) {
+          <span class="toolbar__count">เลือก {{ selectedCount() }}</span>
+        }
+        <button class="btn btn--approve" [disabled]="selectedCount() === 0" (click)="openModal('APPROVE')">อนุมัติ</button>
+        <button class="btn btn--reject" [disabled]="selectedCount() === 0" (click)="openModal('REJECT')">ไม่อนุมัติ</button>
       </div>
     </div>
 
@@ -53,11 +51,21 @@
               <span class="checkbox__box"></span>
             </label>
           </th>
-          <th>รายการ</th>
-          <th>รหัส</th>
-          <th class="grid__hide-sm">ผู้ยื่น</th>
-          <th class="grid__hide-sm">วันที่ยื่น</th>
-          <th>สถานะการอนุมัติ</th>
+          <th class="th-sort" [class.th-sort--active]="sort() === 'name'" (click)="sortBy('name')">
+            รายการ<span class="sort-arrow">{{ sort() === 'name' ? (order() === 'asc' ? ' ↑' : ' ↓') : '' }}</span>
+          </th>
+          <th class="th-sort" [class.th-sort--active]="sort() === 'code'" (click)="sortBy('code')">
+            รหัส<span class="sort-arrow">{{ sort() === 'code' ? (order() === 'asc' ? ' ↑' : ' ↓') : '' }}</span>
+          </th>
+          <th class="th-sort grid__hide-sm" [class.th-sort--active]="sort() === 'requester'" (click)="sortBy('requester')">
+            ผู้ยื่น<span class="sort-arrow">{{ sort() === 'requester' ? (order() === 'asc' ? ' ↑' : ' ↓') : '' }}</span>
+          </th>
+          <th class="th-sort grid__hide-sm" [class.th-sort--active]="sort() === 'submittedAt'" (click)="sortBy('submittedAt')">
+            วันที่ยื่น<span class="sort-arrow">{{ sort() === 'submittedAt' ? (order() === 'asc' ? ' ↑' : ' ↓') : '' }}</span>
+          </th>
+          <th class="th-sort" [class.th-sort--active]="sort() === 'status'" (click)="sortBy('status')">
+            สถานะ<span class="sort-arrow">{{ sort() === 'status' ? (order() === 'asc' ? ' ↑' : ' ↓') : '' }}</span>
+          </th>
           <th class="grid__actions-head">ดำเนินการ</th>
         </tr>
       </thead>

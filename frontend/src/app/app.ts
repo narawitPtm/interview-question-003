@@ -1,6 +1,6 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ApprovalService } from './approval.service';
+import { ApprovalService, SortField } from './approval.service';
 import { ApprovalDocument, ApprovalStatus, STATUS_LABEL } from './models/approval';
 
 type ModalKind = 'APPROVE' | 'REJECT';
@@ -18,6 +18,9 @@ export class App implements OnInit {
   protected readonly documents = this.service.documents;
   protected readonly counts = this.service.counts;
   protected readonly loading = this.service.loading;
+  protected readonly sort = this.service.sort;
+  protected readonly order = this.service.order;
+  protected readonly statusFilter = this.service.statusFilter;
 
   protected readonly selected = signal<ReadonlySet<number>>(new Set());
   protected readonly modal = signal<ModalKind | null>(null);
@@ -99,6 +102,15 @@ export class App implements OnInit {
   protected formatDate(iso: string): string {
     const [y, m, d] = iso.split('-');
     return `${d}/${m}/${y}`;
+  }
+
+  protected sortBy(field: SortField): void {
+    this.service.setSort(field);
+  }
+
+  protected setStatusFilter(status: string): void {
+    this.selected.set(new Set());
+    this.service.setStatusFilter(status);
   }
 
   protected quickAction(doc: ApprovalDocument, kind: ModalKind, event: Event): void {

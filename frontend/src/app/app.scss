@@ -198,6 +198,59 @@
 
 .btn--ghost:hover { background: var(--paper); }
 
+/* ---- Filter tabs ---- */
+.filter-tabs {
+  display: flex;
+  gap: 0.25rem;
+  flex-wrap: wrap;
+}
+
+.filter-tab {
+  font-family: var(--font-display);
+  font-size: 0.82rem;
+  font-weight: 500;
+  padding: 0.32rem 0.8rem;
+  border: 1.5px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.filter-tab:hover {
+  border-color: var(--line-strong);
+  color: var(--ink);
+}
+
+.filter-tab--active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+}
+
+.filter-tab--pending.filter-tab--active {
+  background: var(--pending);
+  border-color: var(--pending);
+}
+
+.filter-tab--approved.filter-tab--active {
+  background: var(--approve);
+  border-color: var(--approve);
+}
+
+.filter-tab--rejected.filter-tab--active {
+  background: var(--reject);
+  border-color: var(--reject);
+}
+
+.toolbar__right {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
 /* ---- Grid / table ---- */
 .grid {
   width: 100%;
@@ -286,6 +339,22 @@ col.col-actions  { width: 96px; }
 }
 
 .grid__check { width: 48px; white-space: nowrap; }
+
+/* ---- Sortable headers ---- */
+.th-sort {
+  cursor: pointer;
+  user-select: none;
+  transition: color 0.15s ease;
+
+  &:hover { color: var(--ink-soft); }
+}
+
+.th-sort--active { color: var(--primary) !important; }
+
+.sort-arrow {
+  font-family: var(--font-mono);
+  color: var(--primary);
+}
 
 /* ---- Per-row quick actions ---- */
 .grid__actions-cell { text-align: center; }

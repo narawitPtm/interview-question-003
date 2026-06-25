@@ -3,6 +3,7 @@ package handler
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 
 	"example.com/it03-approval/internal/model"
 	"example.com/it03-approval/internal/repository"
@@ -17,20 +18,34 @@ func New(repo *repository.DocumentRepo) *DocumentHandler {
 }
 
 func (h *DocumentHandler) List(w http.ResponseWriter, r *http.Request) {
-	docs, err := h.repo.List(r.Context(), r.URL.Query().Get("status"))
+	q := r.URL.Query()
+
+	page, _ := strconv.Atoi(q.Get("page"))
+	if page < 1 {
+		page = 1
+	}
+	pageSize, _ := strconv.Atoi(q.Get("pageSize"))
+	if pageSize < 1 || pageSize > 100 {
+		pageSize = 20
+	}
+
+	result, err := h.repo.List(r.Context(), repository.ListParams{
+		Status:   q.Get("status"),
+		Sort:     q.Get("sort"),
+		Order:    q.Get("order"),
+		Page:     page,
+		PageSize: pageSize,
+	})
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	if docs == nil {
-		docs = []model.Document{}
-	}
-	writeJSON(w, docs)
+	writeJSON(w, result)
 }
 
 type decideRequest struct {
-	IDs    []int  `json:"ids"`
-	Reason string `json:"reason"`
+	IDs    []int64   `json:"ids"`
+	Reason string    `json:"reason"`
 }
 
 func (h *DocumentHandler) Approve(w http.ResponseWriter, r *http.Request) {

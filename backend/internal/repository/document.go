@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"fmt"
 
 	"example.com/it03-approval/internal/model"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -15,42 +16,89 @@ func New(db *pgxpool.Pool) *DocumentRepo {
 	return &DocumentRepo{db: db}
 }
 
-func (r *DocumentRepo) List(ctx context.Context, status string) ([]model.Document, error) {
-	q := `
-		SELECT id, code, name, requester,
+var sortCols = map[string]string{
+	"code":        "code",
+	"name":        "name",
+	"requester":   "requester",
+	"submittedAt": "submitted_at",
+	"status":      "status",
+}
+
+type ListParams struct {
+	Status   string
+	Sort     string
+	Order    string
+	Page     int
+	PageSize int
+}
+
+func (r *DocumentRepo) List(ctx context.Context, p ListParams) (model.PagedResult, error) {
+	col, ok := sortCols[p.Sort]
+	if !ok {
+		col = "submitted_at"
+	}
+	if p.Order != "asc" {
+		p.Order = "desc"
+	}
+
+	where := ""
+	countArgs := []any{}
+	dataArgs := []any{}
+	if p.Status != "" {
+		where = " WHERE status = $1"
+		countArgs = append(countArgs, p.Status)
+		dataArgs = append(dataArgs, p.Status)
+	}
+
+	// safe: col is from whitelist, order is "asc" or "desc"
+	orderBy := fmt.Sprintf(" ORDER BY %s %s, id %s", col, p.Order, p.Order)
+
+	var total int
+	if err := r.db.QueryRow(ctx, "SELECT COUNT(*) FROM documents"+where, countArgs...).Scan(&total); err != nil {
+		return model.PagedResult{}, err
+	}
+
+	offset := (p.Page - 1) * p.PageSize
+	n := len(dataArgs) + 1
+	limit := fmt.Sprintf(" LIMIT $%d OFFSET $%d", n, n+1)
+	dataArgs = append(dataArgs, p.PageSize, offset)
+
+	q := `SELECT id, code, name, requester,
 		       to_char(submitted_at, 'YYYY-MM-DD'),
 		       status, reason,
 		       to_char(decided_at, 'YYYY-MM-DD')
-		FROM documents`
+		  FROM documents` + where + orderBy + limit
 
-	args := []any{}
-	if status != "" {
-		q += " WHERE status = $1"
-		args = append(args, status)
-	}
-	q += " ORDER BY submitted_at DESC, id DESC"
-
-	rows, err := r.db.Query(ctx, q, args...)
+	rows, err := r.db.Query(ctx, q, dataArgs...)
 	if err != nil {
-		return nil, err
+		return model.PagedResult{}, err
 	}
 	defer rows.Close()
 
-	var docs []model.Document
+	docs := []model.Document{}
 	for rows.Next() {
 		var d model.Document
 		if err := rows.Scan(
 			&d.ID, &d.Code, &d.Name, &d.Requester,
 			&d.SubmittedAt, &d.Status, &d.Reason, &d.DecidedAt,
 		); err != nil {
-			return nil, err
+			return model.PagedResult{}, err
 		}
 		docs = append(docs, d)
 	}
-	return docs, rows.Err()
+	if err := rows.Err(); err != nil {
+		return model.PagedResult{}, err
+	}
+
+	return model.PagedResult{
+		Data:     docs,
+		Total:    total,
+		Page:     p.Page,
+		PageSize: p.PageSize,
+	}, nil
 }
 
-func (r *DocumentRepo) Decide(ctx context.Context, ids []int, status model.Status, reason string) error {
+func (r *DocumentRepo) Decide(ctx context.Context, ids []int64, status model.Status, reason string) error {
 	if len(ids) == 0 {
 		return nil
 	}
