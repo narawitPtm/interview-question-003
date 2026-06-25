@@ -118,15 +118,64 @@ Angular dev server starts on **http://localhost:4200** and proxies `/api/*` to `
 | `order` | `desc` | `asc` or `desc` |
 | `status` | _(all)_ | Filter: `PENDING`, `APPROVED`, `REJECTED` |
 
-Response:
-```json
-{ "data": [...], "total": 10, "page": 1, "pageSize": 20 }
+**Example request:**
+```
+GET /api/documents?page=1&pageSize=5&sort=submittedAt&order=desc&status=PENDING
 ```
 
-### POST /api/documents/approve — /reject
-
+**Example response:**
 ```json
-{ "ids": [1, 2, 3], "reason": "ตรวจสอบแล้วถูกต้อง" }
+{
+  "data": [
+    {
+      "id": 10,
+      "code": "DOC-010",
+      "name": "ขออนุมัติจัดกิจกรรมสัมมนา",
+      "requester": "อรอุมา ร่าเริง",
+      "submittedAt": "2025-01-23",
+      "status": "PENDING"
+    },
+    {
+      "id": 9,
+      "code": "DOC-009",
+      "name": "ขอจัดซื้ออุปกรณ์เครือข่าย",
+      "requester": "พิชัย ตั้งใจ",
+      "submittedAt": "2025-01-22",
+      "status": "PENDING"
+    }
+  ],
+  "total": 6,
+  "page": 1,
+  "pageSize": 5
+}
+```
+
+---
+
+### POST /api/documents/approve
+
+**Example request:**
+```json
+{ "ids": [1, 3, 7], "reason": "ตรวจสอบแล้วถูกต้อง" }
+```
+
+**Example response:**
+```
+200 OK (empty body)
+```
+
+---
+
+### POST /api/documents/reject
+
+**Example request:**
+```json
+{ "ids": [5], "reason": "งบประมาณไม่เพียงพอ" }
+```
+
+**Example response:**
+```
+200 OK (empty body)
 ```
 
 Only `PENDING` documents are updated. Already-decided documents are silently skipped.
