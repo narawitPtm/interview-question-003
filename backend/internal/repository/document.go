@@ -17,11 +17,11 @@ func New(db *pgxpool.Pool) *DocumentRepo {
 }
 
 var sortCols = map[string]string{
-	"code":        "code",
-	"name":        "name",
-	"requester":   "requester",
-	"submittedAt": "submitted_at",
-	"status":      "status",
+	"code":        "d.code",
+	"name":        "d.name",
+	"requester":   "d.requester",
+	"submittedAt": "d.submitted_at",
+	"status":      "ds.code",
 }
 
 type ListParams struct {
@@ -35,26 +35,27 @@ type ListParams struct {
 func (r *DocumentRepo) List(ctx context.Context, p ListParams) (model.PagedResult, error) {
 	col, ok := sortCols[p.Sort]
 	if !ok {
-		col = "submitted_at"
+		col = "d.submitted_at"
 	}
 	if p.Order != "asc" {
 		p.Order = "desc"
 	}
 
+	join := " FROM documents d JOIN document_statuses ds ON ds.id = d.status_id"
 	where := ""
 	countArgs := []any{}
 	dataArgs := []any{}
 	if p.Status != "" {
-		where = " WHERE status = $1"
+		where = " WHERE ds.code = $1"
 		countArgs = append(countArgs, p.Status)
 		dataArgs = append(dataArgs, p.Status)
 	}
 
 	// safe: col is from whitelist, order is "asc" or "desc"
-	orderBy := fmt.Sprintf(" ORDER BY %s %s, id %s", col, p.Order, p.Order)
+	orderBy := fmt.Sprintf(" ORDER BY %s %s, d.id %s", col, p.Order, p.Order)
 
 	var total int
-	if err := r.db.QueryRow(ctx, "SELECT COUNT(*) FROM documents"+where, countArgs...).Scan(&total); err != nil {
+	if err := r.db.QueryRow(ctx, "SELECT COUNT(*)"+join+where, countArgs...).Scan(&total); err != nil {
 		return model.PagedResult{}, err
 	}
 
@@ -63,11 +64,10 @@ func (r *DocumentRepo) List(ctx context.Context, p ListParams) (model.PagedResul
 	limit := fmt.Sprintf(" LIMIT $%d OFFSET $%d", n, n+1)
 	dataArgs = append(dataArgs, p.PageSize, offset)
 
-	q := `SELECT id, code, name, requester,
-		       to_char(submitted_at, 'YYYY-MM-DD'),
-		       status, reason,
-		       to_char(decided_at, 'YYYY-MM-DD')
-		  FROM documents` + where + orderBy + limit
+	q := `SELECT d.id, d.code, d.name, d.requester,
+			     to_char(d.submitted_at, 'YYYY-MM-DD'),
+			     ds.code, d.reason,
+			     to_char(d.decided_at, 'YYYY-MM-DD')` + join + where + orderBy + limit
 
 	rows, err := r.db.Query(ctx, q, dataArgs...)
 	if err != nil {
@@ -104,8 +104,12 @@ func (r *DocumentRepo) Decide(ctx context.Context, ids []int64, status model.Sta
 	}
 	_, err := r.db.Exec(ctx, `
 		UPDATE documents
-		SET status = $1, reason = $2, decided_at = CURRENT_DATE, updated_at = NOW()
-		WHERE id = ANY($3) AND status = 'PENDING'
+		SET status_id  = (SELECT id FROM document_statuses WHERE code = $1),
+		    reason     = $2,
+		    decided_at = CURRENT_DATE,
+		    updated_at = NOW()
+		WHERE id = ANY($3)
+		  AND status_id = (SELECT id FROM document_statuses WHERE code = 'PENDING')
 	`, status, reason, ids)
 	return err
 }
