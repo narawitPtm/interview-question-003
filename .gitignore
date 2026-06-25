@@ -18,3 +18,13 @@ Thumbs.db
 
 # Temp
 .tmp/
+temporary screenshots/
+frontend/.tmp_serve.log
+
+# Editor
+frontend/.vscode/
+frontend/README.md
+
+# Claude Code
+.claude/
+CLAUDE.md
