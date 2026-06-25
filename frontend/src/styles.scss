@@ -1,0 +1,41 @@
+:root {
+  --ink: #1c1a17;
+  --ink-soft: #56514a;
+  --ink-faint: #8a837a;
+  --paper: #f4f1ea;
+  --paper-raised: #fbf9f4;
+  --line: #e2dccf;
+  --line-strong: #d2cabb;
+
+  --primary: #2f3a8f;
+  --approve: #2f7a55;
+  --approve-soft: #e4f0e8;
+  --reject: #b23b3b;
+  --reject-soft: #f6e3e1;
+  --pending: #b07a1e;
+  --pending-soft: #f4ebd8;
+
+  --font-display: 'Bai Jamjuree', system-ui, sans-serif;
+  --font-body: 'IBM Plex Sans Thai', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  font-family: var(--font-body);
+  color: var(--ink);
+  background-color: var(--paper);
+  background-image:
+    radial-gradient(circle at 12% -10%, rgba(47, 58, 143, 0.06), transparent 42%),
+    radial-gradient(circle at 100% 0%, rgba(178, 59, 59, 0.05), transparent 38%);
+  -webkit-font-smoothing: antialiased;
+}
