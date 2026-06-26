@@ -1,6 +1,7 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { ApprovalDocument } from './models/approval';
+import { ToastService } from './toast.service';
 
 export type SortField = 'code' | 'name' | 'requester' | 'submittedAt' | 'status';
 export type SortOrder = 'asc' | 'desc';
@@ -15,6 +16,7 @@ interface PagedResult {
 @Injectable({ providedIn: 'root' })
 export class ApprovalService {
   private readonly http = inject(HttpClient);
+  private readonly toast = inject(ToastService);
 
   private readonly _docs = signal<ApprovalDocument[]>([]);
   private readonly _loading = signal(false);
@@ -60,7 +62,10 @@ export class ApprovalService {
         this._total.set(res.total);
         this._loading.set(false);
       },
-      error: () => this._loading.set(false),
+      error: () => {
+        this._loading.set(false);
+        this.toast.error('โหลดข้อมูลไม่สำเร็จ กรุณาลองใหม่');
+      },
     });
   }
 
@@ -89,14 +94,24 @@ export class ApprovalService {
   }
 
   approve(ids: Iterable<number>, reason: string): void {
-    this.http
-      .post<void>('/api/documents/approve', { ids: [...ids], reason })
-      .subscribe({ next: () => this.load() });
+    const count = [...ids].length;
+    this.http.post<void>('/api/documents/approve', { ids: [...ids], reason }).subscribe({
+      next: () => {
+        this.toast.success(`อนุมัติ ${count} รายการสำเร็จ`);
+        this.load();
+      },
+      error: () => this.toast.error('อนุมัติไม่สำเร็จ กรุณาลองใหม่'),
+    });
   }
 
   reject(ids: Iterable<number>, reason: string): void {
-    this.http
-      .post<void>('/api/documents/reject', { ids: [...ids], reason })
-      .subscribe({ next: () => this.load() });
+    const count = [...ids].length;
+    this.http.post<void>('/api/documents/reject', { ids: [...ids], reason }).subscribe({
+      next: () => {
+        this.toast.success(`ไม่อนุมัติ ${count} รายการสำเร็จ`);
+        this.load();
+      },
+      error: () => this.toast.error('บันทึกการปฏิเสธไม่สำเร็จ กรุณาลองใหม่'),
+    });
   }
 }

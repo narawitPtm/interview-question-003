@@ -5,10 +5,11 @@ import { MastheadComponent } from './components/masthead/masthead.component';
 import { FilterToolbarComponent } from './components/filter-toolbar/filter-toolbar.component';
 import { DocumentTableComponent, QuickActionEvent } from './components/document-table/document-table.component';
 import { ConfirmModalComponent } from './components/confirm-modal/confirm-modal.component';
+import { ToastContainerComponent } from './components/toast-container/toast-container.component';
 
 @Component({
   selector: 'app-root',
-  imports: [MastheadComponent, FilterToolbarComponent, DocumentTableComponent, ConfirmModalComponent],
+  imports: [MastheadComponent, FilterToolbarComponent, DocumentTableComponent, ConfirmModalComponent, ToastContainerComponent],
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })
